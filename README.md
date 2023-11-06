@@ -1,2 +1,4 @@
-# TST-18221170
-Tugas TST 18221170
+# Microservice Deployment
+## II3160 Integrated System Technology
+## By : Amjad Adhie Prasetyo - 18221170
+
