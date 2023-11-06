@@ -1,0 +1,9 @@
+version: '24.0.6'
+services:
+  core_api:
+    build: .
+    container_name: "api_container_01"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/:/app
