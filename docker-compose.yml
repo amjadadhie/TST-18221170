@@ -4,6 +4,6 @@ services:
     build: .
     container_name: "api_container_01"
     ports:
-      - "3000:3000"
+      - "8000:8000"
     volumes:
       - ./app/:/app
