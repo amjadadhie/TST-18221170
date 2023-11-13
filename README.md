@@ -9,3 +9,5 @@ User terbagi menjadi 2, yaitu umum dan admin. Umum bisa melihat bagaimana energy
 
 Untuk melakukan autentikasi ini, bisa langsung menjalankan program dengan Virtual Environment. Di local host, Anda dapat membuat akun dengan memilih API "register".
 By default, akun Anda akan diset menjadi "non-admin'. Untuk mengubahnya, Anda harus mengubah data Json secara manual. Hal ini dilakukan agar sesuai dengan sebagaimana mestinya.
+
+Link : https://amjad-auth-3.wittyfield-c9323e0d.australiaeast.azurecontainerapps.io/docs 
