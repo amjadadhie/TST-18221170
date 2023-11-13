@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="S:\Kuliah\TST\Tugas\Fast API amjad\amjadenv"
+VIRTUAL_ENV="S:\Kuliah\TST\Tugas\punya jazmy\amjadenv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

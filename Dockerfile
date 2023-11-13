@@ -1,9 +1,9 @@
-FROM python
-
+FROM python:3
+COPY . /app
 WORKDIR /app
 
-COPY . /app
+# Install any necessary dependencies
+RUN pip install fastapi uvicorn
 
-RUN pip install -r requirements.txt
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run the FastAPI server when the container starts
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]

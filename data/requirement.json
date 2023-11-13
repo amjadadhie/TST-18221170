@@ -1,0 +1,80 @@
+{
+    "data_listrik": [
+        {
+            "username": "user1",
+            "tanggal": "2022-01-01",
+            "jam": 8,
+            "jumlahListrik": 100.5
+        },
+        {
+            "username": "user2",
+            "tanggal": "2022-01-01",
+            "jam": 8,
+            "jumlahListrik": 200.5
+        },
+        {
+            "username": "user1",
+            "tanggal": "2022-01-01",
+            "jam": 12,
+            "jumlahListrik": 150.5
+        },
+        {
+            "username": "user2",
+            "tanggal": "2022-01-01",
+            "jam": 12,
+            "jumlahListrik": 250.5
+        },
+        {
+            "id": 5,
+            "username": "string",
+            "tanggal": "string",
+            "jam": 0,
+            "jumlahListrik": 0.0
+        },
+        {
+            "id": 6,
+            "username": "songgos",
+            "tanggal": "string",
+            "jam": 0,
+            "jumlahListrik": 0.0
+        }
+    ],
+    "data_cuaca": [
+        {
+            "username": "user1",
+            "waktu": "2022-01-01 08:00:00",
+            "kelembaban": 70
+        },
+        {
+            "username": "user2",
+            "waktu": "2022-01-01 08:00:00",
+            "kelembaban": 75
+        },
+        {
+            "username": "user1",
+            "waktu": "2022-01-01 12:00:00",
+            "kelembaban": 80
+        },
+        {
+            "username": "user2",
+            "waktu": "2022-01-01 12:00:00",
+            "kelembaban": 85
+        },
+        {
+            "username": "user1",
+            "waktu": "2022-01-03 10:00:00",
+            "kelembaban": 83
+        },
+        {
+            "username": "user3",
+            "waktu": "2022-01-03 10:00:00",
+            "kelembaban": 89
+        },
+        {
+            "id": 7,
+            "username": "string",
+            "waktu": "string",
+            "kelembaban": 0
+        }
+    ]
+}
