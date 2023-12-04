@@ -89,34 +89,46 @@ async def create_data_listrik(
     return new_data_listrik
 
 #Post Real Estate Data
-@administrator_router.post("/real_estate")
-async def post_real_estate_data(real_estate: realEstate, user: UserJSON = Depends(get_current_user)):
+@administrator_router.post("/post/realEstate", response_model= realEstate)
+async def addRealEstate(change: realEstate, user: UserJSON = Depends(get_current_user)):
+    # Check if the user is an admin or if the requirement belongs to the authenticated user
     if not user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to create new data"
+            detail="You do not have permission to create a new real estate"
         )
-    new_real_estate = {
-        "id": real_estate.id,
-        "name": real_estate.name,
-        "address": real_estate.address,
-        "location": real_estate.location,
-        "price": real_estate.price,
-        "area": real_estate.area,
-        "bedroom": real_estate.bedroom,
-        "bathroom": real_estate.bathroom,
-        "description": real_estate.description,
-        "image": real_estate.image,
-        "type": real_estate.type,
-        "status": real_estate.status
-    }
-    realEstate.append(new_real_estate)
-    # Write the updated data to the JSON file
-    with open("data/requirement.json", "w") as json_file:
-        data["real_estate"] = realEstate
-        json.dump(data, json_file, indent=4)
-    return new_real_estate
+    
+    try:
+        change_dict = change.dict()
+    except Exception as e:
+        raise HTTPException(status_code=422, detail="Invalid input data")
 
+    print(user.friend_token)
+
+    headers = {
+        "Authorization" : f"Bearer {user.friend_token}"
+    }
+
+    try:
+        # Lakukan permintaan HTTP ke API eksternal
+        async with httpx.AsyncClient() as client:
+            response = await client.post("https://tst-auth-18221094.victoriousplant-40d1c733.australiaeast.azurecontainerapps.io/admin/realEstate", json=change_dict, headers=headers)
+        
+        # Periksa apakah permintaan berhasil (kode status 200)
+        response.raise_for_status()
+
+        # Ubah respons JSON menjadi bentuk yang sesuai dengan model Anda
+        external_real_estate_data = response.json()
+        
+        return external_real_estate_data
+
+    except httpx.HTTPError as e:
+        # Tangani kesalahan HTTP jika terjadi
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+
+    except Exception as e:
+        # Tangani kesalahan umum jika terjadi
+        raise HTTPException(status_code=500, detail=str(e))
 
 @administrator_router.post("/data_cuaca",  response_model=DataCuaca)
 async def create_data_cuaca(

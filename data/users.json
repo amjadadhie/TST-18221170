@@ -40,5 +40,12 @@
         "password_hash": "$2b$12$VfevDAzsW2yoXrhJsrPvPeGJqRwdpem7u.l0dhPRUAAeGS7DqY7Xe",
         "is_admin": false,
         "friend_token": ""
+    },
+    {
+        "id": 7,
+        "username": "Pak IGBN",
+        "password_hash": "$2b$12$bBBWDq4Bkl/ZEK6bn9VKSOH4vUMD/5IuQaBz6Wh2Q34VEFWG4wXEK",
+        "is_admin": true,
+        "friend_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJQYWsgSUdCTiIsImlkIjoxfQ.YuZCQZ9uFfHKDo2uTFVt0dPBybSfzRx5GjOtZJstgng"
     }
 ]

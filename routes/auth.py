@@ -63,13 +63,13 @@ async def generate_token(form_data: OAuth2PasswordRequestForm = Depends()):
         for user in users_data:
             if user['username'] == form_data.username :
                 user['friend_token'] = friend_token
+                write_users_to_json()
 
     except httpx.HTTPError as e:
         print(response.text)
         raise HTTPException(status_code=500, detail=f"Failed to generate token in friend's service: {str(e)}")
         
-
-    return {'access_token': token, 'token_type': 'bearer', 'friend_token': friend_token}
+    return {'access_token': token, 'token_type': 'bearer', 'username' : form_data.username, 'friend_token': friend_token}
 
 # Dependency to get current user
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -101,11 +101,11 @@ async def register_user(user: UserIn):
     user_id = len(users_data) + 1
     password_hash = bcrypt.hash(user.password)
     
-    is_admin = False
-    if user.username == "amjad":
-        is_admin = True
+    is_admin = True
+    # if user.username == "amjad":
+    #     is_admin = True
         
-    new_user = {"id": user_id, "username": user.username, "password_hash": password_hash, "is_admin": is_admin}
+    new_user = {"id": user_id, "username": user.username, "password_hash": password_hash, "is_admin": is_admin, "friend_token" : ""}
     users_data.append(new_user)
     write_users_to_json()
     return new_user
