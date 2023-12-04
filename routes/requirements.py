@@ -13,8 +13,8 @@ with open("data/requirement.json", "r") as json_file:
 dataListrik = data.get("data_listrik", [])
 dataCuaca = data.get("data_cuaca", [])
 
-umum_router = APIRouter(tags=["GET"])
 administrator_router = APIRouter(tags=["CRUD"])
+umum_router = APIRouter(tags=["GET"])
 raka_router = APIRouter(tags=["Real Estate"])
 
 #GET
@@ -163,12 +163,12 @@ async def update_real_estate(id: int, newData: realEstate, user: UserJSON = Depe
     except Exception as e:
         raise HTTPException(status_code=422, detail="Invalid input data")
 
-    url = "https://tst-auth-18221094.victoriousplant-40d1c733.australiaeast.azurecontainerapps.io/admin/realEstate/1"
+    url = f"https://tst-auth-18221094.victoriousplant-40d1c733.australiaeast.azurecontainerapps.io/admin/realEstate/{id}"
 
     headers = {
         "Authorization" : f"Bearer {user.friend_token}"
     }
-
+ 
     try:
         # Lakukan permintaan HTTP ke API eksternal
         async with httpx.AsyncClient() as client:
@@ -197,60 +197,44 @@ async def update_data_listrik(
     data_listrik: DataListrik,
     user: UserJSON = Depends(get_current_user)
 ):
-    existing_data_listrik = next((req for req in dataListrik if req.get("id") == id), None)
+    existing_data_listrik = data.get("data_listrik", [])
 
-    if not existing_data_listrik:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Data with supplied username does not exist"
-        )
-    
-    if not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to edit this data"
-        )
+    for i, existing_data in enumerate(existing_data_listrik):
+        if existing_data.get("username") == data_listrik.username:
+            # Update the fields, except 'username' and 'id'
+            for key, value in data_listrik.dict().items():
+                if key not in ["id", "username"]:
+                    existing_data[key] = value
 
-    # Update the fields, except 'username' and 'id'
-    for key, value in data_listrik.dict().items():
-        if key not in ["id", "username"]:
-            existing_data_listrik[key] = value
+            # Write the updated data to the JSON file
+            with open('data/requirement.json', "w") as write_file:
+                json.dump(data, write_file, indent=4)
 
-    # Write the updated data to the JSON file
-    with open("data/requirement.json", "w") as json_file:
-        data["data_listrik"] = dataListrik
+            return DataListrik(**existing_data)
 
-    return DataListrik(**existing_data_listrik)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data listrik not found")
 
 @administrator_router.put("/edit_cuaca", response_model=DataCuaca)
 async def update_data_cuaca(
     data_cuaca: DataCuaca,
     user: UserJSON = Depends(get_current_user)
 ):
-    existing_data_cuaca = next((req for req in dataCuaca if req.get("id") == id), None)
+    existing_data_cuaca = data.get("data_cuaca", [])
 
-    if not existing_data_cuaca:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Data with supplied username does not exist"
-        )
-    
-    if  not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to edit this data"
-        )
+    for i, existing_data in enumerate(existing_data_cuaca):
+        if existing_data.get("username") == data_cuaca.username:
+            # Update the fields, except 'username' and 'id'
+            for key, value in data_cuaca.dict().items():
+                if key not in ["id", "username"]:
+                    existing_data[key] = value
 
-    # Update the fields, except 'username' and 'id'
-    for key, value in data_cuaca.dict().items():
-        if key not in ["id", "username"]:
-            existing_data_cuaca[key] = value
+            # Write the updated data to the JSON file
+            with open('data/requirement.json', "w") as write_file:
+                json.dump(data, write_file, indent=4)
 
-    # Write the updated data to the JSON file
-    with open("data/requirement.json", "w") as json_file:
-        data["data_cuaca"] = dataCuaca
+            return DataListrik(**existing_data)
 
-    return DataCuaca(**existing_data_cuaca)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data cuaca not found")
 
 #----------------------------------------------------------------#
 
@@ -262,7 +246,7 @@ def delete_data_listrik(username: str, user: UserJSON = Depends(get_current_user
     if  not user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to edit this data"
+            detail="You do not have permission to delete this data"
         )
 
     if not existing_data_listrik:
@@ -287,7 +271,7 @@ async def delete_data_cuaca(username: str, user: UserJSON = Depends(get_current_
     if  not user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to edit this data"
+            detail="You do not have permission to delete this data"
         )
 
     if not existing_data_cuaca:

@@ -47,5 +47,33 @@
         "password_hash": "$2b$12$bBBWDq4Bkl/ZEK6bn9VKSOH4vUMD/5IuQaBz6Wh2Q34VEFWG4wXEK",
         "is_admin": true,
         "friend_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJQYWsgSUdCTiIsImlkIjoxfQ.YuZCQZ9uFfHKDo2uTFVt0dPBybSfzRx5GjOtZJstgng"
+    },
+    {
+        "id": 8,
+        "username": "string",
+        "password_hash": "$2b$12$uXQAyQQFG8FL2BFLURP/CeD7QO0d8ZB6BuM8qepW5ZpWAftbWxZHW",
+        "is_admin": true,
+        "friend_token": ""
+    },
+    {
+        "id": 9,
+        "username": "string",
+        "password_hash": "$2b$12$nEATz73x0GJeJkfqu2T0B.p7AXU0WSg5FDYJnmtHNqrg6bgHiKMQa",
+        "is_admin": true,
+        "friend_token": ""
+    },
+    {
+        "id": 10,
+        "username": "pongkeey",
+        "password_hash": "$2b$12$81EHUX2GKF4lLfBzYdKg8O56BNgATv862lRc9hlt1LDQlWlSZHKC.",
+        "is_admin": true,
+        "friend_token": ""
+    },
+    {
+        "id": 11,
+        "username": "alan",
+        "password_hash": "$2b$12$LoZ7RMJVrptSrRW1zxdFeOamxrtmNyU/NU9IURiKSQ.0Ebp2x1l/G",
+        "is_admin": true,
+        "friend_token": ""
     }
 ]

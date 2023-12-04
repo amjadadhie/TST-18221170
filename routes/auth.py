@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.hash import bcrypt
-import jwt
+from jose import jwt
 import json
 from models.users import Token, UserIn, UserJSON
 import httpx
@@ -66,10 +66,22 @@ async def generate_token(form_data: OAuth2PasswordRequestForm = Depends()):
                 write_users_to_json()
 
     except httpx.HTTPError as e:
-        print(response.text)
         raise HTTPException(status_code=500, detail=f"Failed to generate token in friend's service: {str(e)}")
         
     return {'access_token': token, 'token_type': 'bearer', 'username' : form_data.username, 'friend_token': friend_token}
+
+@auth_router.post('/token/self', response_model=Token)
+async def generate_token_self(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail='Invalid username or password'
+        )
+    token_data = {"sub": user['username'], "id": user['id']}
+    token = jwt.encode(token_data, JWT_SECRET)
+    return {'access_token': token, 'token_type': 'bearer'}
+
 
 # Dependency to get current user
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -108,4 +120,20 @@ async def register_user(user: UserIn):
     new_user = {"id": user_id, "username": user.username, "password_hash": password_hash, "is_admin": is_admin, "friend_token" : ""}
     users_data.append(new_user)
     write_users_to_json()
+
+    friend_service_url = "https://tst-auth-18221094.victoriousplant-40d1c733.australiaeast.azurecontainerapps.io/register"
+
+    friend_token_data = {
+        "username": user.username,
+        "password": user.password,
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(friend_service_url, json=friend_token_data)
+        
+        response.raise_for_status()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate token in friend's service: {str(e)}")
+    
     return new_user
