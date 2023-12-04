@@ -13,8 +13,9 @@ with open("data/requirement.json", "r") as json_file:
 dataListrik = data.get("data_listrik", [])
 dataCuaca = data.get("data_cuaca", [])
 
-umum_router = APIRouter(tags=["Umum"])
-administrator_router = APIRouter(tags=["Administrator Only"])
+umum_router = APIRouter(tags=["GET"])
+administrator_router = APIRouter(tags=["CRUD"])
+raka_router = APIRouter(tags=["Real Estate"])
 
 #GET
 @umum_router.get("/data_listrik", response_model=List[DataListrik])
@@ -27,7 +28,7 @@ async def retrieve_all_data_cuaca() -> List[DataCuaca]:
 
 #API RAKA
 #GET ALL REAL ESTATE
-@umum_router.get("/real_estate")
+@raka_router.get("/real_estate")
 async def get_real_estate_data(user: UserJSON = Depends(get_current_user)):
     try:
         # Lakukan permintaan HTTP ke API eksternal
@@ -89,8 +90,8 @@ async def create_data_listrik(
     return new_data_listrik
 
 #Post Real Estate Data
-@administrator_router.post("/post/realEstate", response_model= realEstate)
-async def addRealEstate(change: realEstate, user: UserJSON = Depends(get_current_user)):
+@raka_router.post("/post/realEstate", response_model= realEstate)
+async def add_real_estate(change: realEstate, user: UserJSON = Depends(get_current_user)):
     # Check if the user is an admin or if the requirement belongs to the authenticated user
     if not user.is_admin:
         raise HTTPException(
@@ -154,6 +155,41 @@ async def create_data_cuaca(
 
 
 #----------------------------------------------------------------#
+# PUT real estate
+@raka_router.put("/realEstate", response_model=realEstate)
+async def update_real_estate(id: int, newData: realEstate, user: UserJSON = Depends(get_current_user)):
+    try:
+        change_dict = newData.dict()
+    except Exception as e:
+        raise HTTPException(status_code=422, detail="Invalid input data")
+
+    url = "https://tst-auth-18221094.victoriousplant-40d1c733.australiaeast.azurecontainerapps.io/admin/realEstate/1"
+
+    headers = {
+        "Authorization" : f"Bearer {user.friend_token}"
+    }
+
+    try:
+        # Lakukan permintaan HTTP ke API eksternal
+        async with httpx.AsyncClient() as client:
+            response = await client.put(url, json=change_dict, headers=headers)
+        
+        # Periksa apakah permintaan berhasil (kode status 200)
+        response.raise_for_status()
+
+        # Ubah respons JSON menjadi bentuk yang sesuai dengan model Anda
+        external_real_estate_data = response.json()
+        
+        return external_real_estate_data
+
+    except httpx.HTTPError as e:
+        # Tangani kesalahan HTTP jika terjadi
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+
+    except Exception as e:
+        # Tangani kesalahan umum jika terjadi
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # #PUT
 @administrator_router.put("/edit_listrik", response_model=DataListrik)
