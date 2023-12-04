@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 import json
-from models.requirements import DataListrik, DataCuaca
+from models.requirements import DataListrik, DataCuaca, realEstate
 from models.users import UserJSON
 from routes.auth import get_current_user
+import httpx
 
 # Load data from the JSON file
 with open("data/requirement.json", "r") as json_file:
@@ -15,7 +16,6 @@ dataCuaca = data.get("data_cuaca", [])
 umum_router = APIRouter(tags=["Umum"])
 administrator_router = APIRouter(tags=["Administrator Only"])
 
-
 #GET
 @umum_router.get("/data_listrik", response_model=List[DataListrik])
 async def retrieve_all_data_listrik() -> List[DataListrik]:
@@ -25,6 +25,30 @@ async def retrieve_all_data_listrik() -> List[DataListrik]:
 async def retrieve_all_data_cuaca() -> List[DataCuaca]:
     return dataCuaca
 
+#API RAKA
+#GET ALL REAL ESTATE
+@umum_router.get("/real_estate")
+async def get_real_estate_data(user: UserJSON = Depends(get_current_user)):
+    try:
+        # Lakukan permintaan HTTP ke API eksternal
+        async with httpx.AsyncClient() as client:
+            response = await client.get("https://tst-auth-18221094.victoriousplant-40d1c733.australiaeast.azurecontainerapps.io/getters/realEstate")
+        
+        # Periksa apakah permintaan berhasil (kode status 200)
+        response.raise_for_status()
+
+        # Ubah respons JSON menjadi bentuk yang sesuai dengan model Anda
+        external_real_estate_data = response.json()
+        
+        return external_real_estate_data
+
+    except httpx.HTTPError as e:
+        # Tangani kesalahan HTTP jika terjadi
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+
+    except Exception as e:
+        # Tangani kesalahan umum jika terjadi
+        raise HTTPException(status_code=500, detail=str(e))
 
 # getter data_listrik and data_cuaca by username
 @umum_router.get("/data_listrik/{username}", response_model=List[DataListrik])
@@ -32,9 +56,11 @@ async def retrieve_data_listrik_by_username(username: str) -> List[DataListrik]:
     return [req for req in dataListrik if req.get("username") == username]
 
 @umum_router.get("/data_cuaca/{username}", response_model=List[DataCuaca])
-async def retrieve_data_cuaca_by_username(username: str) -> List[DataCuaca]:
-    return [req for req in dataCuaca if req.get("username") == username]
+async def retrieve_data_cuaca_by_username(username: str, user: UserJSON = Depends(get_current_user)) -> List[DataCuaca]:
+    # Dapatkan data cuaca sesuai dengan username
+    user_data_cuaca = [req for req in dataCuaca if req.get("username") == username]
 
+    return user_data_cuaca
 #----------------------------------------------------------------#
 
 #POST
@@ -61,6 +87,36 @@ async def create_data_listrik(
         data["data_listrik"] = dataListrik
         json.dump(data, json_file, indent=4)
     return new_data_listrik
+
+#Post Real Estate Data
+@administrator_router.post("/real_estate")
+async def post_real_estate_data(real_estate: realEstate, user: UserJSON = Depends(get_current_user)):
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to create new data"
+        )
+    new_real_estate = {
+        "id": real_estate.id,
+        "name": real_estate.name,
+        "address": real_estate.address,
+        "location": real_estate.location,
+        "price": real_estate.price,
+        "area": real_estate.area,
+        "bedroom": real_estate.bedroom,
+        "bathroom": real_estate.bathroom,
+        "description": real_estate.description,
+        "image": real_estate.image,
+        "type": real_estate.type,
+        "status": real_estate.status
+    }
+    realEstate.append(new_real_estate)
+    # Write the updated data to the JSON file
+    with open("data/requirement.json", "w") as json_file:
+        data["real_estate"] = realEstate
+        json.dump(data, json_file, indent=4)
+    return new_real_estate
+
 
 @administrator_router.post("/data_cuaca",  response_model=DataCuaca)
 async def create_data_cuaca(

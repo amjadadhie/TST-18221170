@@ -4,6 +4,7 @@ from passlib.hash import bcrypt
 import jwt
 import json
 from models.users import Token, UserIn, UserJSON
+import httpx
 
 # Load user data from JSON file
 with open("data/users.json", "r") as json_file:
@@ -44,10 +45,35 @@ async def generate_token(form_data: OAuth2PasswordRequestForm = Depends()):
     token_data = {"sub": user['username'], "id": user['id']}
     token = jwt.encode(token_data, JWT_SECRET)
 
-    return {'access_token': token, 'token_type': 'bearer'}
+    friend_service_url = "https://tst-auth-18221094.victoriousplant-40d1c733.australiaeast.azurecontainerapps.io/token"
+
+    friend_token_data = {
+        "username": form_data.username,
+        "password": form_data.password
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(friend_service_url, data=friend_token_data)
+        
+        response.raise_for_status()
+        friend_response_data = response.json()
+        friend_token = friend_response_data.get("access_token")
+        # menambahkan token ke user
+        for user in users_data:
+            if user['username'] == form_data.username :
+                user['friend_token'] = friend_token
+
+    except httpx.HTTPError as e:
+        print(response.text)
+        raise HTTPException(status_code=500, detail=f"Failed to generate token in friend's service: {str(e)}")
+        
+
+    return {'access_token': token, 'token_type': 'bearer', 'friend_token': friend_token}
 
 # Dependency to get current user
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
         user_id = payload.get('id')
