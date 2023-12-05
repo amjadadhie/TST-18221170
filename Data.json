@@ -55,13 +55,7 @@
             "jumlahListrik": 200.5
         },
         {
-            "username": "user1",
-            "tanggal": "2022-01-01",
-            "jam": 12,
-            "jumlahListrik": 150.5
-        },
-        {
-            "username": "user2",
+            "username": "user3",
             "tanggal": "2022-01-01",
             "jam": 12,
             "jumlahListrik": 250.5

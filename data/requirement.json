@@ -13,16 +13,16 @@
             "jumlahListrik": 300.0
         },
         {
-            "username": "user1",
-            "tanggal": "2022-01-01",
-            "jam": 12,
-            "jumlahListrik": 150.5
-        },
-        {
-            "username": "user2",
+            "username": "user3",
             "tanggal": "2022-01-01",
             "jam": 12,
             "jumlahListrik": 250.5
+        },
+        {
+            "username": "mamat",
+            "tanggal": "2023-12-05",
+            "jam": 8,
+            "jumlahListrik": 12.0
         }
     ],
     "data_cuaca": [

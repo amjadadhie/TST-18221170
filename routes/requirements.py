@@ -13,23 +13,14 @@ with open("data/requirement.json", "r") as json_file:
 dataListrik = data.get("data_listrik", [])
 dataCuaca = data.get("data_cuaca", [])
 
-administrator_router = APIRouter(tags=["CRUD"])
-umum_router = APIRouter(tags=["GET"])
-raka_router = APIRouter(tags=["Real Estate"])
+raka_router = APIRouter(tags=["Layanan Baru (Utama)"])
+umum_router = APIRouter(tags=["Layanan Baru (Pendukung)"])
+administrator_router = APIRouter(tags=["Layanan Lama (tidak digunakan pada layanan baru)"])
 
 #GET
-@umum_router.get("/data_listrik", response_model=List[DataListrik])
-async def retrieve_all_data_listrik() -> List[DataListrik]:
-    return dataListrik
-
-@umum_router.get("/data_cuaca", response_model=List[DataCuaca])
-async def retrieve_all_data_cuaca() -> List[DataCuaca]:
-    return dataCuaca
-
-#API RAKA
 #GET ALL REAL ESTATE
-@raka_router.get("/real_estate")
-async def get_real_estate_data(user: UserJSON = Depends(get_current_user)):
+@umum_router.get("/real_estate")
+async def get_all_real_estate_data(user: UserJSON = Depends(get_current_user)):
     try:
         # Lakukan permintaan HTTP ke API eksternal
         async with httpx.AsyncClient() as client:
@@ -50,14 +41,64 @@ async def get_real_estate_data(user: UserJSON = Depends(get_current_user)):
     except Exception as e:
         # Tangani kesalahan umum jika terjadi
         raise HTTPException(status_code=500, detail=str(e))
+@umum_router.get("/data_listrik", response_model=List[DataListrik])
+async def retrieve_all_data_listrik() -> List[DataListrik]:
+    return dataListrik
+
+@administrator_router.get("/data_cuaca", response_model=List[DataCuaca])
+async def retrieve_all_data_cuaca() -> List[DataCuaca]:
+    return dataCuaca
+
+#API RAKA
+
+@raka_router.get("/real_estate_username")
+async def retrieve_real_estate_by_username(username: str, user: UserJSON = Depends(get_current_user)):
+    try:
+        # Mendapatkan seluruh data real estate
+        all_real_estate = await get_all_real_estate_data(user)
+
+        # Mendapatkan seluruh data listrik
+        all_data_listrik = await retrieve_all_data_listrik()
+
+        # Mencari real estate berdasarkan username
+        real_estate = next((entry for entry in all_real_estate if entry.get("name") == username), None)
+
+        if real_estate:
+            # Mencari data listrik berdasarkan username
+            data_listrik = next((entry for entry in all_data_listrik if entry.get("username") == username), None)
+
+            if data_listrik:
+                # Kembalikan hasil jika real estate dan data listrik ditemukan
+                joined_entry = {
+                    "Real Estate ID": real_estate["id"],
+                    "Real Estate user": real_estate["name"],
+                    "Total Penggunaan Listrik (kWh)": data_listrik["jumlahListrik"],
+                    "Lama Penggunaan (jam)" : data_listrik["jam"],
+                    "Tanggal Pemakaian" : data_listrik["tanggal"]
+                }
+                return joined_entry
+            else:
+                # Kembalikan real estate jika data listrik tidak ditemukan
+                return real_estate
+        else:
+            # Kembalikan None jika real estate tidak ditemukan
+            return None
+
+    except Exception as e:
+        # Tangani kesalahan umum jika terjadi
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
 
 # getter data_listrik and data_cuaca by username
 @umum_router.get("/data_listrik/{username}", response_model=List[DataListrik])
 async def retrieve_data_listrik_by_username(username: str) -> List[DataListrik]:
     return [req for req in dataListrik if req.get("username") == username]
 
-@umum_router.get("/data_cuaca/{username}", response_model=List[DataCuaca])
-async def retrieve_data_cuaca_by_username(username: str, user: UserJSON = Depends(get_current_user)) -> List[DataCuaca]:
+@administrator_router.get("/data_cuaca/{username}", response_model=List[DataCuaca])
+async def retrieve_data_cuaca_by_username(username: str) -> List[DataCuaca]:
     # Dapatkan data cuaca sesuai dengan username
     user_data_cuaca = [req for req in dataCuaca if req.get("username") == username]
 
@@ -66,7 +107,7 @@ async def retrieve_data_cuaca_by_username(username: str, user: UserJSON = Depend
 
 #POST
 
-@administrator_router.post("/data_listik",  response_model=DataListrik)
+@raka_router.post("/data_listik",  response_model=DataListrik)
 async def create_data_listrik(
     data_listrik: DataListrik,
     user: UserJSON = Depends(get_current_user)
@@ -192,7 +233,7 @@ async def update_real_estate(id: int, newData: realEstate, user: UserJSON = Depe
 
 
 # #PUT
-@administrator_router.put("/edit_listrik", response_model=DataListrik)
+@raka_router.put("/edit_listrik", response_model=DataListrik)
 async def update_data_listrik(
     data_listrik: DataListrik,
     user: UserJSON = Depends(get_current_user)
@@ -239,7 +280,7 @@ async def update_data_cuaca(
 #----------------------------------------------------------------#
 
 #DELETE
-@administrator_router.delete("delete_listrik/{username}")
+@umum_router.delete("/delete_listrik/{username}")
 def delete_data_listrik(username: str, user: UserJSON = Depends(get_current_user)):
     existing_data_listrik = next((req for req in dataListrik if req.get("username") == username), None)
 
@@ -264,7 +305,7 @@ def delete_data_listrik(username: str, user: UserJSON = Depends(get_current_user
 
     return existing_data_listrik
 
-@administrator_router.delete("delete_cuaca/{username}")
+@administrator_router.delete("/delete_cuaca/{username}")
 async def delete_data_cuaca(username: str, user: UserJSON = Depends(get_current_user)):
     existing_data_cuaca = next((req for req in dataCuaca if req.get("username") == username), None)
 
