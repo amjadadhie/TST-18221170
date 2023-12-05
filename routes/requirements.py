@@ -17,7 +17,6 @@ raka_router = APIRouter(tags=["Layanan Baru (Utama)"])
 umum_router = APIRouter(tags=["Layanan Baru (Pendukung)"])
 administrator_router = APIRouter(tags=["Layanan Lama (tidak digunakan pada layanan baru)"])
 
-#GET
 #GET ALL REAL ESTATE
 @umum_router.get("/real_estate")
 async def get_all_real_estate_data(user: UserJSON = Depends(get_current_user)):
@@ -41,18 +40,21 @@ async def get_all_real_estate_data(user: UserJSON = Depends(get_current_user)):
     except Exception as e:
         # Tangani kesalahan umum jika terjadi
         raise HTTPException(status_code=500, detail=str(e))
+    
+#GET ALL DATA LISTRIK
 @umum_router.get("/data_listrik", response_model=List[DataListrik])
 async def retrieve_all_data_listrik() -> List[DataListrik]:
     return dataListrik
 
+#GET ALL DATA CUACA
 @administrator_router.get("/data_cuaca", response_model=List[DataCuaca])
 async def retrieve_all_data_cuaca() -> List[DataCuaca]:
     return dataCuaca
 
 #API RAKA
-
+# GET REAL ESTATE DAN DATA LISTRIK
 @raka_router.get("/real_estate_username")
-async def retrieve_real_estate_by_username(username: str, user: UserJSON = Depends(get_current_user)):
+async def retrieve_real_estate_and_its_electricity_by_username(username: str, user: UserJSON = Depends(get_current_user)):
     try:
         # Mendapatkan seluruh data real estate
         all_real_estate = await get_all_real_estate_data(user)
@@ -88,10 +90,6 @@ async def retrieve_real_estate_by_username(username: str, user: UserJSON = Depen
         # Tangani kesalahan umum jika terjadi
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
-
-
 # getter data_listrik and data_cuaca by username
 @umum_router.get("/data_listrik/{username}", response_model=List[DataListrik])
 async def retrieve_data_listrik_by_username(username: str) -> List[DataListrik]:
@@ -103,10 +101,35 @@ async def retrieve_data_cuaca_by_username(username: str) -> List[DataCuaca]:
     user_data_cuaca = [req for req in dataCuaca if req.get("username") == username]
 
     return user_data_cuaca
+
+#  GET DATA CUACA
+@administrator_router.post("/data_cuaca",  response_model=DataCuaca)
+async def create_data_cuaca(
+    data_cuaca: DataCuaca,
+    user: UserJSON = Depends(get_current_user)
+):
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to create new data"
+        )
+    new_data_cuaca = {
+        "username": data_cuaca.username,
+        "waktu": data_cuaca.waktu,
+        "kelembaban": data_cuaca.kelembaban
+    }
+    dataCuaca.append(new_data_cuaca)
+    # Write the updated data to the JSON file
+    with open("data/requirement.json", "w") as json_file:
+        data["data_cuaca"] = dataCuaca
+        json.dump(data, json_file, indent=4)
+    return new_data_cuaca
+
+
 #----------------------------------------------------------------#
+# POST
 
-#POST
-
+# POST DATA LISTRIK
 @raka_router.post("/data_listik",  response_model=DataListrik)
 async def create_data_listrik(
     data_listrik: DataListrik,
@@ -172,31 +195,10 @@ async def add_real_estate(change: realEstate, user: UserJSON = Depends(get_curre
         # Tangani kesalahan umum jika terjadi
         raise HTTPException(status_code=500, detail=str(e))
 
-@administrator_router.post("/data_cuaca",  response_model=DataCuaca)
-async def create_data_cuaca(
-    data_cuaca: DataCuaca,
-    user: UserJSON = Depends(get_current_user)
-):
-    if not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to create new data"
-        )
-    new_data_cuaca = {
-        "username": data_cuaca.username,
-        "waktu": data_cuaca.waktu,
-        "kelembaban": data_cuaca.kelembaban
-    }
-    dataCuaca.append(new_data_cuaca)
-    # Write the updated data to the JSON file
-    with open("data/requirement.json", "w") as json_file:
-        data["data_cuaca"] = dataCuaca
-        json.dump(data, json_file, indent=4)
-    return new_data_cuaca
-
 
 #----------------------------------------------------------------#
-# PUT real estate
+# PUT
+# EDIT real estate
 @raka_router.put("/realEstate", response_model=realEstate)
 async def update_real_estate(id: int, newData: realEstate, user: UserJSON = Depends(get_current_user)):
     try:
@@ -231,8 +233,7 @@ async def update_real_estate(id: int, newData: realEstate, user: UserJSON = Depe
         # Tangani kesalahan umum jika terjadi
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# #PUT
+# EDIT LISTRIK
 @raka_router.put("/edit_listrik", response_model=DataListrik)
 async def update_data_listrik(
     data_listrik: DataListrik,
@@ -255,6 +256,8 @@ async def update_data_listrik(
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data listrik not found")
 
+
+# EDIT CUACA
 @administrator_router.put("/edit_cuaca", response_model=DataCuaca)
 async def update_data_cuaca(
     data_cuaca: DataCuaca,
